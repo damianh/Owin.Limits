@@ -30,7 +30,8 @@
         }
 
         [Fact]
-        public async Task When_max_queryString_length_is_10_then_a_request_with_escaped_length_greater_than_10_but_unescaped_lower_or_equal_than_10_should_be_serverd()
+        public async Task
+            When_max_queryString_length_is_10_then_a_request_with_escaped_length_greater_than_10_but_unescaped_lower_or_equal_than_10_should_be_serverd()
         {
             HttpClient client = CreateClient(10);
 
@@ -39,11 +40,26 @@
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
+        [Fact]
+        public async Task When_queryString_exceeds_max_length_then_request_should_be_rejected_with_custom_reasonPhrase()
+        {
+            HttpClient client = CreateClient(5, "custom phrase");
+
+            HttpResponseMessage response = await client.GetAsync("http://example.com?q=123456");
+
+            response.StatusCode.Should().Be(HttpStatusCode.RequestUriTooLong);
+            response.ReasonPhrase.Should().Be("custom phrase");
+        }
 
         private static HttpClient CreateClient(int length)
         {
+            return CreateClient(length, "");
+        }
+
+        private static HttpClient CreateClient(int length, string reasonPhrase)
+        {
             return TestServer.Create(builder => builder
-                .MaxQueryStringLength(length)
+                .MaxQueryStringLength(new MaxQueryStringLengthOptions(length) {LimitReachedReasonPhrase = code => reasonPhrase})
                 .Use((context, next) =>
                 {
                     context.Response.StatusCode = 200;
