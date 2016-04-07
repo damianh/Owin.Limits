@@ -53,9 +53,9 @@
                     IOwinRequest request = context.Request;
                     string requestMethod = request.Method.Trim().ToUpper();
 
-                    if (requestMethod == "GET" || requestMethod == "HEAD")
+                    if (requestMethod == "HEAD")
                     {
-                        logger.Debug("GET or HEAD request without checking forwarded.");
+                        logger.Debug("HEAD request forwarded without check.");
                         await next(env);
                         return;
                     }
@@ -67,34 +67,40 @@
                         string contentLengthHeaderValue = request.Headers.Get("Content-Length");
                         if (contentLengthHeaderValue == null)
                         {
-                            logger.Info("No content length header provided. Request rejected.");
-                            SetResponseStatusCodeAndReasonPhrase(context, 411, "Length Required");
-                            return;
+                            if (requestMethod == "PUT" || requestMethod == "POST")
+                            {
+                                SetResponseStatusCodeAndReasonPhrase(context, 411, "Length Required");
+                                return;
+                            }
+                            request.Body = new ContentLengthLimitingStream(request.Body, 0);
                         }
-                        int contentLength;
-                        if (!int.TryParse(contentLengthHeaderValue, out contentLength))
+                        else
                         {
-                            logger.Info("Invalid content length header value. Value: {0}".FormatWith(contentLengthHeaderValue));
-                            SetResponseStatusCodeAndReasonPhrase(context, 400, "Bad Request");
-                            return;
+                            int contentLength;
+                            if (!int.TryParse(contentLengthHeaderValue, out contentLength))
+                            {
+                                logger.Info($"Invalid content length header value. Value: {contentLengthHeaderValue}");
+                                SetResponseStatusCodeAndReasonPhrase(context, 400, "Bad Request");
+                                return;
+                            }
+                            if (contentLength > maxContentLength)
+                            {
+                                logger.Info($"Content length of {contentLength} exceeds maximum of {maxContentLength}. Request rejected.");
+                                SetResponseStatusCodeAndReasonPhrase(context, 413, "Request Entity Too Large");
+                                return;
+                            }
+                            logger.Debug("Content length header check passed.");
+
+                            request.Body = new ContentLengthLimitingStream(request.Body, maxContentLength);
+                            logger.Debug($"Request body stream configured with length limiting stream of {maxContentLength}.");
                         }
-                        if (contentLength > maxContentLength)
-                        {
-                            logger.Info("Content length of {0} exceeds maximum of {1}. Request rejected.".FormatWith(
-                                contentLength,
-                                maxContentLength));
-                            SetResponseStatusCodeAndReasonPhrase(context, 413, "Request Entity Too Large");
-                            return;
-                        }
-                        logger.Debug("Content length header check passed.");
                     }
                     else
                     {
+                        request.Body = new ContentLengthLimitingStream(request.Body, maxContentLength);
+                        logger.Debug($"Request body stream configured with length limiting stream of {maxContentLength}.");
                         logger.Debug("Chunked request. Content length header not checked.");
                     }
-
-                    request.Body = new ContentLengthLimitingStream(request.Body, maxContentLength);
-                    logger.Debug("Request body stream configured with length limiting stream of {0}.".FormatWith(maxContentLength));
 
                     try
                     {
@@ -102,11 +108,17 @@
                         await next(env);
                         logger.Debug("Processing finished.");
                     }
+                    catch (ContentLengthRequiredException)
+                    {
+                        logger.Info("Content length required. Request canceled and rejected.");
+                        SetResponseStatusCodeAndReasonPhrase(context, 411, "Length Required");
+                    }
                     catch (ContentLengthExceededException)
                     {
                         logger.Info("Content length of {0} exceeded. Request canceled and rejected.".FormatWith(maxContentLength));
                         SetResponseStatusCodeAndReasonPhrase(context, 413, "Request Entity Too Large");
                     }
+
                 };
         }
 
