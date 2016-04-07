@@ -4,9 +4,9 @@
     using System.Diagnostics;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class MinResponseDelayMiddlewareTests
@@ -38,7 +38,7 @@
 
             TimeSpan limitTimespan = stopwatch.Elapsed;
 
-            limitTimespan.Should().BeGreaterThan(noLimitTimespan);
+            limitTimespan.ShouldBeGreaterThan(noLimitTimespan);
         }
 
         private static HttpClient CreateHttpClient(Func<TimeSpan> getMinDelay)

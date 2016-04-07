@@ -6,9 +6,9 @@ namespace LimitsMiddleware
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class MaxBandwidthGlobalTests
@@ -45,7 +45,7 @@ namespace LimitsMiddleware
             Console.WriteLine(nolimitTimeSpan);
             Console.WriteLine(limitedTimeSpan);
 
-            limitedTimeSpan.Should().BeGreaterThan(nolimitTimeSpan);
+            limitedTimeSpan.ShouldBeGreaterThan(nolimitTimeSpan);
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace LimitsMiddleware
             Console.WriteLine(nolimitTimeSpan);
             Console.WriteLine(limitedTimeSpan);
 
-            limitedTimeSpan.Should().BeGreaterThan(nolimitTimeSpan);
+            limitedTimeSpan.ShouldBeGreaterThan(nolimitTimeSpan);
         }
 
         private static HttpClient CreateHttpClient(Func<int> getMaxBytesPerSecond, int forceConcurrentCount)

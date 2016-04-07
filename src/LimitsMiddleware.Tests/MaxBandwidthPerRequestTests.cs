@@ -5,11 +5,11 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Microsoft.Owin.FileSystems;
     using Microsoft.Owin.StaticFiles;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class MaxBandwidthPerRequestTests
@@ -30,7 +30,7 @@
                 stopwatch.Start();
 
                 var response = await httpClient.GetAsync(file);
-                response.StatusCode.Should().Be(HttpStatusCode.OK);
+                response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
                 stopwatch.Stop();
             }
@@ -41,7 +41,7 @@
                 stopwatch.Restart();
 
                 var response = await httpClient.GetAsync(file);
-                response.StatusCode.Should().Be(HttpStatusCode.OK);
+                response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
                 stopwatch.Stop();
             }
@@ -52,10 +52,10 @@
             Console.WriteLine("No limits: {0}", nolimitTimeSpan);
             Console.WriteLine("Limited  : {0}", limitedTimeSpan);
 
-            limitedTimeSpan.Should().BeGreaterThan(nolimitTimeSpan);
+            limitedTimeSpan.ShouldBeGreaterThan(nolimitTimeSpan);
 
             var abs = Math.Abs((limitedTimeSpan.TotalSeconds - nolimitTimeSpan.TotalSeconds) - approximateSeconds);
-            (abs < 1).Should().BeTrue("value {0} >= 1", abs);
+            (abs < 1).ShouldBeTrue($"value {abs} >= 1");
         }
 
         private static HttpClient CreateHttpClient(int maxKiloBytesPerSecond = -1)

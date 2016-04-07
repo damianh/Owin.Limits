@@ -5,9 +5,9 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class MaxConcurrentRequestsTests
@@ -22,8 +22,8 @@
 
             tcs.SetResult(0);
 
-            response1.StatusCode.Should().Be(HttpStatusCode.OK);
-            response2.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+            response1.StatusCode.ShouldBe(HttpStatusCode.OK);
+            response2.StatusCode.ShouldBe(HttpStatusCode.ServiceUnavailable);
         }
 
         [Fact]
@@ -36,8 +36,8 @@
 
             tcs.SetResult(0);
 
-            response1.StatusCode.Should().Be(HttpStatusCode.OK);
-            response2.StatusCode.Should().Be(HttpStatusCode.OK);
+            response1.StatusCode.ShouldBe(HttpStatusCode.OK);
+            response2.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -50,8 +50,8 @@
 
             tcs.SetResult(0);
 
-            response1.StatusCode.Should().Be(HttpStatusCode.OK);
-            response2.StatusCode.Should().Be(HttpStatusCode.OK);
+            response1.StatusCode.ShouldBe(HttpStatusCode.OK);
+            response2.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         private static HttpClient CreateHttpClient(int maxConcurrentRequests, Task waitHandle)

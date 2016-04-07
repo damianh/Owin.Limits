@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using FluentAssertions;
+    using Shouldly;
     using Xunit;
 
     public class FixedTokenBucketTests
@@ -26,8 +26,8 @@
             TimeSpan waitTime;
             var shouldThrottle = _bucket.ShouldThrottle(NLessThanMax, out waitTime);
 
-            shouldThrottle.Should().BeFalse();
-            _bucket.CurrentTokenCount.Should().Be(MaxTokens - NLessThanMax);
+            shouldThrottle.ShouldBeFalse();
+            _bucket.CurrentTokenCount.ShouldBe(MaxTokens - NLessThanMax);
         }
 
         [Fact]
@@ -35,12 +35,12 @@
         {
             for (var i = 0; i < Cumulative; i++)
             {
-                _bucket.ShouldThrottle(NLessThanMax).Should().BeFalse();
+                _bucket.ShouldThrottle(NLessThanMax).ShouldBeFalse();
             }
 
             var tokens = _bucket.CurrentTokenCount;
 
-            tokens.Should().Be(MaxTokens - (Cumulative*NLessThanMax));
+            tokens.ShouldBe(MaxTokens - (Cumulative*NLessThanMax));
         }
 
         [Fact]
@@ -48,12 +48,12 @@
         {
             for (var i = 0; i < Cumulative; i++)
             {
-                _bucket.ShouldThrottle(NGreaterThanMax).Should().BeTrue();
+                _bucket.ShouldThrottle(NGreaterThanMax).ShouldBeTrue();
             }
 
             var tokens = _bucket.CurrentTokenCount;
 
-            tokens.Should().Be(MaxTokens);
+            tokens.ShouldBe(MaxTokens);
         }
 
         [Fact]
@@ -64,16 +64,16 @@
 
             var before = _bucket.ShouldThrottle(NLessThanMax);
             var tokensBefore = _bucket.CurrentTokenCount;
-            before.Should().BeFalse();
-            tokensBefore.Should().Be(MaxTokens - NLessThanMax);
+            before.ShouldBeFalse();
+            tokensBefore.ShouldBe(MaxTokens - NLessThanMax);
 
             _getUtcNow = () => virtualNow.AddSeconds(RefillInterval);
 
             var after = _bucket.ShouldThrottle(NLessThanMax);
             var tokensAfter = _bucket.CurrentTokenCount;
 
-            after.Should().BeFalse();
-            tokensAfter.Should().Be(MaxTokens - NLessThanMax);
+            after.ShouldBeFalse();
+            tokensAfter.ShouldBe(MaxTokens - NLessThanMax);
         }
 
         [Fact]
@@ -85,15 +85,15 @@
             var before = _bucket.ShouldThrottle(NGreaterThanMax);
             var tokensBefore = _bucket.CurrentTokenCount;
 
-            before.Should().BeTrue();
-            tokensBefore.Should().Be(MaxTokens);
+            before.ShouldBeTrue();
+            tokensBefore.ShouldBe(MaxTokens);
 
             _getUtcNow = () => virtualNow.AddSeconds(RefillInterval);
 
             var after = _bucket.ShouldThrottle(NGreaterThanMax);
             var tokensAfter = _bucket.CurrentTokenCount;
-            after.Should().BeTrue();
-            tokensAfter.Should().Be(MaxTokens);
+            after.ShouldBeTrue();
+            tokensAfter.ShouldBe(MaxTokens);
         }
 
         [Fact]
@@ -105,20 +105,20 @@
             long sum = 0;
             for (var i = 0; i < Cumulative; i++)
             {
-                _bucket.ShouldThrottle(NLessThanMax).Should().BeFalse();
+                _bucket.ShouldThrottle(NLessThanMax).ShouldBeFalse();
                 sum += NLessThanMax;
             }
             var tokensBefore = _bucket.CurrentTokenCount;
-            tokensBefore.Should().Be(MaxTokens - sum);
+            tokensBefore.ShouldBe(MaxTokens - sum);
 
             _getUtcNow = () => virtualNow.AddSeconds(RefillInterval);
 
             for (var i = 0; i < Cumulative; i++)
             {
-                _bucket.ShouldThrottle(NLessThanMax).Should().BeFalse();
+                _bucket.ShouldThrottle(NLessThanMax).ShouldBeFalse();
             }
             var tokensAfter = _bucket.CurrentTokenCount;
-            tokensAfter.Should().Be(MaxTokens - sum);
+            tokensAfter.ShouldBe(MaxTokens - sum);
         }
 
         [Fact]
@@ -130,11 +130,11 @@
             long sum = 0;
             for (var i = 0; i < Cumulative; i++)
             {
-                _bucket.ShouldThrottle(NLessThanMax).Should().BeFalse();
+                _bucket.ShouldThrottle(NLessThanMax).ShouldBeFalse();
                 sum += NLessThanMax;
             }
             var tokensBefore = _bucket.CurrentTokenCount;
-            tokensBefore.Should().Be(MaxTokens - sum);
+            tokensBefore.ShouldBe(MaxTokens - sum);
 
             _getUtcNow = () => virtualNow.AddSeconds(RefillInterval);
 
@@ -146,8 +146,8 @@
             var after = _bucket.ShouldThrottle(NLessThanMax);
             var tokensAfter = _bucket.CurrentTokenCount;
 
-            after.Should().BeTrue();
-            tokensAfter.Should().BeLessThan(NLessThanMax);
+            after.ShouldBeTrue();
+            tokensAfter.ShouldBeLessThan(NLessThanMax);
         }
 
         [Fact]
@@ -164,20 +164,20 @@
             var before = _bucket.ShouldThrottle(NLessThanMax);
             var tokensBefore = _bucket.CurrentTokenCount;
 
-            before.Should().BeTrue();
-            tokensBefore.Should().BeLessThan(NLessThanMax);
+            before.ShouldBeTrue();
+            tokensBefore.ShouldBeLessThan(NLessThanMax);
 
             _getUtcNow = () => virtualNow.AddSeconds(RefillInterval);
 
             long sum = 0;
             for (var i = 0; i < Cumulative; i++)
             {
-                _bucket.ShouldThrottle(NLessThanMax).Should().BeFalse();
+                _bucket.ShouldThrottle(NLessThanMax).ShouldBeFalse();
                 sum += NLessThanMax;
             }
 
             var tokensAfter = _bucket.CurrentTokenCount;
-            tokensAfter.Should().Be(MaxTokens - sum);
+            tokensAfter.ShouldBe(MaxTokens - sum);
         }
 
         [Fact]
@@ -194,8 +194,8 @@
             var before = _bucket.ShouldThrottle(NLessThanMax);
             var tokensBefore = _bucket.CurrentTokenCount;
 
-            before.Should().BeTrue();
-            tokensBefore.Should().BeLessThan(NLessThanMax);
+            before.ShouldBeTrue();
+            tokensBefore.ShouldBeLessThan(NLessThanMax);
 
             _getUtcNow = () => virtualNow.AddSeconds(RefillInterval);
 
@@ -206,8 +206,8 @@
             var after = _bucket.ShouldThrottle(NLessThanMax);
             var tokensAfter = _bucket.CurrentTokenCount;
 
-            after.Should().BeTrue();
-            tokensAfter.Should().BeLessThan(NLessThanMax);
+            after.ShouldBeTrue();
+            tokensAfter.ShouldBeLessThan(NLessThanMax);
         }
 
         [Fact]
@@ -216,41 +216,41 @@
             var task1 = Task.Run(() => 
             {
                 var throttle = _bucket.ShouldThrottle(NLessThanMax);
-                throttle.Should().BeFalse();
+                throttle.ShouldBeFalse();
             });
 
             var task2 = Task.Run(() =>
             {
                 var throttle = _bucket.ShouldThrottle(NLessThanMax);
-                throttle.Should().BeFalse();
+                throttle.ShouldBeFalse();
             });
 
             await Task.WhenAll(task1, task2);
 
-            _bucket.CurrentTokenCount.Should().Be(MaxTokens - 2*NLessThanMax);
+            _bucket.CurrentTokenCount.ShouldBe(MaxTokens - 2*NLessThanMax);
         }
 
         [Fact]
         public async Task ShouldThrottle_Thread1NGreaterThanMaxAndThread2NGreaterThanMax()
         {
             var shouldThrottle = _bucket.ShouldThrottle(NGreaterThanMax);
-            shouldThrottle.Should().BeTrue();
+            shouldThrottle.ShouldBeTrue();
 
             var task1 = Task.Run(() =>
             {
                 var throttle = _bucket.ShouldThrottle(NGreaterThanMax);
-                throttle.Should().BeTrue();
+                throttle.ShouldBeTrue();
             });
 
             var task2 = Task.Run(() =>
             {
                 var throttle = _bucket.ShouldThrottle(NGreaterThanMax);
-                throttle.Should().BeTrue();
+                throttle.ShouldBeTrue();
             });
 
             await Task.WhenAll(task1, task2);
 
-            _bucket.CurrentTokenCount.Should().Be(MaxTokens);
+            _bucket.CurrentTokenCount.ShouldBe(MaxTokens);
         }
     }
 }

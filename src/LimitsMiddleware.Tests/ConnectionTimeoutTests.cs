@@ -7,9 +7,9 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class ConnectionTimeoutTests
@@ -46,7 +46,7 @@
             stream.Write(new byte[2048], 0, 2048);
             stream.Position = 0;
             HttpResponseMessage response = await httpClient.PostAsync("http://example.com", new StreamContent(stream));
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         private static HttpClient CreateHttpClient(Func<TimeSpan> getConnectionTimeout)
@@ -87,7 +87,7 @@
             {
                 actual = e.GetType();
             }
-            expected.Should().Be(actual);
+            expected.ShouldBe(actual);
         }
 
         private class DelayedReadStream : MemoryStream

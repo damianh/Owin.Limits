@@ -6,9 +6,9 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class MaxRequestContentLengthTests
@@ -20,7 +20,7 @@
 
             HttpResponseMessage response = await client.GetAsync("/");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
 
@@ -33,7 +33,7 @@
 
             HttpResponseMessage response = await client.GetAsync("/");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -44,7 +44,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -56,7 +56,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -68,7 +68,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
+            response.StatusCode.ShouldBe(HttpStatusCode.RequestEntityTooLarge);
         }
 
         [Fact]
@@ -80,7 +80,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -92,7 +92,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
+            response.StatusCode.ShouldBe(HttpStatusCode.RequestEntityTooLarge);
         }
 
         [Fact]
@@ -104,7 +104,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -116,7 +116,7 @@
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
+            response.StatusCode.ShouldBe(HttpStatusCode.RequestEntityTooLarge);
         }
 
         [Fact]
@@ -126,7 +126,7 @@
 
             HttpResponseMessage response = await client.PostAsync("/", null);
 
-            response.StatusCode.Should().Be(HttpStatusCode.LengthRequired);
+            response.StatusCode.ShouldBe(HttpStatusCode.LengthRequired);
         }
 
         [Fact]
@@ -134,12 +134,12 @@
         {
             var client = CreateHttpClient(20);
             var request = new HttpRequestMessage(HttpMethod.Post, "/");
-            request.Content = new ByteArrayContent(new byte[] { 0 } );
+            request.Content = new NoLengthContent();
             request.Content.Headers.TryAddWithoutValidation("Content-Length", "NotAValidNumber");
 
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         }
 
         [Fact]
@@ -153,7 +153,7 @@
             request.Headers.TransferEncodingChunked = true;
             HttpResponseMessage response = await client.SendAsync(request);
 
-            response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
+            response.StatusCode.ShouldBe(HttpStatusCode.RequestEntityTooLarge);
         }
 
         private static HttpClient CreateHttpClient(int maxContentLength)
@@ -180,8 +180,22 @@
 
         private static void AddContent(HttpRequestMessage request, int contentLength)
         {
-            request.Content = new ByteArrayContent(Enumerable.Repeat(Byte.MinValue, contentLength).ToArray());
+            request.Content = new ByteArrayContent(Enumerable.Repeat(byte.MinValue, contentLength).ToArray());
             request.Content.Headers.ContentLength = contentLength;
+        }
+
+        private class NoLengthContent : HttpContent
+        {
+            protected override Task SerializeToStreamAsync(Stream stream, TransportContext context)
+            {
+                return Task.FromResult(0);
+            }
+
+            protected override bool TryComputeLength(out long length)
+            {
+                length = -1;
+                return false;
+            }
         }
     }
 }

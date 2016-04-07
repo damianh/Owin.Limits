@@ -4,9 +4,9 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.Builder;
     using Owin;
+    using Shouldly;
     using Xunit;
 
     public class MaxQueryStringTests
@@ -18,7 +18,7 @@
 
             HttpResponseMessage response = await client.GetAsync("http://example.com?q=1234567");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -28,7 +28,7 @@
 
             HttpResponseMessage response = await client.GetAsync("http://example.com?q=123456789");
 
-            response.StatusCode.Should().Be(HttpStatusCode.RequestUriTooLong);
+            response.StatusCode.ShouldBe(HttpStatusCode.RequestUriTooLong);
         }
 
         [Fact]
@@ -39,7 +39,7 @@
 
             HttpResponseMessage response = await client.GetAsync("http://example.com?q=%48%49%50%51%52%53%54");
 
-            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
         }
 
         [Fact]
@@ -49,7 +49,7 @@
 
             HttpResponseMessage response = await client.GetAsync("http://example.com?q=123456");
 
-            response.StatusCode.Should().Be(HttpStatusCode.RequestUriTooLong);
+            response.StatusCode.ShouldBe(HttpStatusCode.RequestUriTooLong);
         }
 
         private static HttpClient CreateClient(int length, string reasonPhrase = null)
