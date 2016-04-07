@@ -47,6 +47,7 @@
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="App_Packages\LibOwin.1.0\LibOwin.cs" />
+    <Compile Include="ContentLengthRequiredException.cs" />
     <Compile Include="InterlockedBoolean.cs" />
     <Compile Include="InterlockedBooleanExtensions.cs" />
     <Compile Include="Limits.MinResponseDelay.cs" />
