@@ -2,56 +2,57 @@
 {
     using System;
     using LimitsMiddleware;
-    using AppFunc = System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
-    using MidFunc = System.Func<
-        System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>,
-        System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>
-        >;
 
     public static partial class AppBuilderExtensions
     {
         /// <summary>
-        /// Limits the length of the query string.
+        ///     Limits the length of the query string.
         /// </summary>
         /// <param name="app">The IAppBuilder instance.</param>
         /// <param name="maxQueryStringLength">Maximum length of the query string.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The IAppBuilder instance.</returns>
-        public static IAppBuilder MaxQueryStringLength(this IAppBuilder app, int maxQueryStringLength)
+        public static IAppBuilder MaxQueryStringLength(this IAppBuilder app, int maxQueryStringLength,
+            string loggerName = null)
         {
             app.MustNotNull("app");
 
-            return MaxQueryStringLength(app, () => maxQueryStringLength);
+            return MaxQueryStringLength(app, () => maxQueryStringLength, loggerName);
         }
 
         /// <summary>
-        /// Limits the length of the query string.
+        ///     Limits the length of the query string.
         /// </summary>
         /// <param name="app">The IAppBuilder instance.</param>
         /// <param name="getMaxQueryStringLength">A delegate to get the maximum query string length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The IAppBuilder instance.</returns>
-        public static IAppBuilder MaxQueryStringLength(this IAppBuilder app, Func<int> getMaxQueryStringLength)
+        public static IAppBuilder MaxQueryStringLength(this IAppBuilder app, Func<int> getMaxQueryStringLength,
+            string loggerName = null)
         {
             app.MustNotNull("app");
             getMaxQueryStringLength.MustNotNull("getMaxQueryStringLength");
 
-            app.Use(Limits.MaxQueryStringLength(getMaxQueryStringLength));
+            app.Use(Limits.MaxQueryStringLength(getMaxQueryStringLength, loggerName));
 
             return app;
         }
 
 
         /// <summary>
-        /// Limits the length of the query string.
+        ///     Limits the length of the query string.
         /// </summary>
         /// <param name="app">The IAppBuilder instance.</param>
         /// <param name="getMaxQueryStringLength">A delegate to get the maximum query string length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The IAppBuilder instance.</returns>
-        public static IAppBuilder MaxQueryStringLength(this IAppBuilder app, Func<RequestContext, int> getMaxQueryStringLength)
+        public static IAppBuilder MaxQueryStringLength(this IAppBuilder app,
+            Func<RequestContext, int> getMaxQueryStringLength, string loggerName = null)
         {
             app.MustNotNull("app");
             getMaxQueryStringLength.MustNotNull("getMaxQueryStringLength");
 
-            app.Use(Limits.MaxQueryStringLength(getMaxQueryStringLength));
+            app.Use(Limits.MaxQueryStringLength(getMaxQueryStringLength, loggerName));
 
             return app;
         }
