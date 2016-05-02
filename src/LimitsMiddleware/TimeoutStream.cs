@@ -11,44 +11,33 @@
     {
         private readonly Stream _innerStream;
         private readonly TimeSpan _timeout;
+        private readonly ILog _logger;
         private readonly Timer _timer;
-        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
-        public TimeoutStream(Stream innerStream, TimeSpan timeout)
+        public TimeoutStream(Stream innerStream, TimeSpan timeout, ILog logger)
         {
             _innerStream = innerStream;
             _timeout = timeout;
+            _logger = logger;
             _timer = new Timer(_timeout.TotalMilliseconds)
             {
                 AutoReset = false
             };
             _timer.Elapsed += (sender, args) =>
             {
-                Logger.Info("Timeout of {0} reached.".FormatWith(_timeout));
+                _logger.Info("Timeout of {0} reached.".FormatWith(_timeout));
                 Close();
             };
             _timer.Start();
         }
 
-        public override bool CanRead
-        {
-            get { return _innerStream.CanRead; }
-        }
+        public override bool CanRead => _innerStream.CanRead;
 
-        public override bool CanSeek
-        {
-            get { return _innerStream.CanSeek; }
-        }
+        public override bool CanSeek => _innerStream.CanSeek;
 
-        public override bool CanWrite
-        {
-            get { return _innerStream.CanWrite; }
-        }
+        public override bool CanWrite => _innerStream.CanWrite;
 
-        public override long Length
-        {
-            get { return _innerStream.Length; }
-        }
+        public override long Length => _innerStream.Length;
 
         public override long Position
         {
@@ -113,7 +102,7 @@
         private void Reset()
         {
             _timer.Stop();
-            Logger.Debug("Timeout timer reseted.");
+            _logger.Debug("Timeout timer reseted.");
             _timer.Start();
         }
     }
