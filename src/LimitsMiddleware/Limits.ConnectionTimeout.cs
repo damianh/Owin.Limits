@@ -12,46 +12,59 @@
     public static partial class Limits
     {
         /// <summary>
-        /// Timeouts the connection if there hasn't been an read activity on the request body stream or any
-        /// write activity on the response body stream.
+        ///     Timeouts the connection if there hasn't been an read activity on the request body stream or any
+        ///     write activity on the response body stream.
         /// </summary>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <param name="timeout">The timeout.</param>
         /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc ConnectionTimeout(TimeSpan timeout)
+        public static MidFunc ConnectionTimeout(TimeSpan timeout, string loggerName = null)
         {
             timeout.MustNotNull("options");
 
-            return ConnectionTimeout(() => timeout);
+            return ConnectionTimeout(() => timeout, loggerName);
         }
 
         /// <summary>
-        /// Timeouts the connection if there hasn't been an read activity on the request body stream or any
-        /// write activity on the response body stream.
+        ///     Timeouts the connection if there hasn't been an read activity on the request body stream or any
+        ///     write activity on the response body stream.
         /// </summary>
-        /// <param name="getTimeout">A delegate to retrieve the timeout timespan. Allows you
-        /// to supply different values at runtime.</param>
+        /// <param name="getTimeout">
+        ///     A delegate to retrieve the timeout timespan. Allows you
+        ///     to supply different values at runtime.
+        /// </param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getTimeout</exception>
-        public static MidFunc ConnectionTimeout(Func<TimeSpan> getTimeout)
+        public static MidFunc ConnectionTimeout(Func<TimeSpan> getTimeout, string loggerName = null)
         {
             getTimeout.MustNotNull("getTimeout");
 
-            return ConnectionTimeout(_ => getTimeout());
+            return ConnectionTimeout(_ => getTimeout(), loggerName);
         }
 
         /// <summary>
-        /// Timeouts the connection if there hasn't been an read activity on the request body stream or any
-        /// write activity on the response body stream.
+        ///     Timeouts the connection if there hasn't been an read activity on the request body stream or any
+        ///     write activity on the response body stream.
         /// </summary>
-        /// <param name="getTimeout">A delegate to retrieve the timeout timespan. Allows you
-        /// to supply different values at runtime.</param>
+        /// <param name="getTimeout">
+        ///     A delegate to retrieve the timeout timespan. Allows you
+        ///     to supply different values at runtime.
+        /// </param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getTimeout</exception>
-        public static MidFunc ConnectionTimeout(Func<RequestContext, TimeSpan> getTimeout)
+        public static MidFunc ConnectionTimeout(
+            Func<RequestContext, TimeSpan> getTimeout,
+            string loggerName = null)
         {
             getTimeout.MustNotNull("getTimeout");
 
-            var logger = LogProvider.GetLogger("LimitsMiddleware.ConnectionTimeout");
+            loggerName = string.IsNullOrWhiteSpace(loggerName)
+                ? "LimitsMiddleware.ConnectionTimeout"
+                : loggerName;
+
+            var logger = LogProvider.GetLogger(loggerName);
 
             return
                 next =>
@@ -60,12 +73,12 @@
                     var context = new OwinContext(env);
                     var limitsRequestContext = new RequestContext(context.Request);
 
-                    Stream requestBodyStream = context.Request.Body ?? Stream.Null;
-                    Stream responseBodyStream = context.Response.Body;
+                    var requestBodyStream = context.Request.Body ?? Stream.Null;
+                    var responseBodyStream = context.Response.Body;
 
-                    TimeSpan connectionTimeout = getTimeout(limitsRequestContext);
-                    context.Request.Body = new TimeoutStream(requestBodyStream, connectionTimeout);
-                    context.Response.Body = new TimeoutStream(responseBodyStream, connectionTimeout);
+                    var connectionTimeout = getTimeout(limitsRequestContext);
+                    context.Request.Body = new TimeoutStream(requestBodyStream, connectionTimeout, logger);
+                    context.Response.Body = new TimeoutStream(responseBodyStream, connectionTimeout, logger);
                     return next(env);
                 };
         }

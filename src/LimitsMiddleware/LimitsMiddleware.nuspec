@@ -10,13 +10,13 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <title>Limits Middleware</title>
         <description>
-            Middleware that applies limits to an OWIN pipeline. Currently supported are max bandwidth, max concurrent requests, connection timeout,
-            max request content length, max querystring length and max url length.
+            Middleware that applies limits to an OWIN pipeline. Currently supported are max bandwidth, max concurrent
+            requests, connection timeout, max request content length, max querystring length and max url length.
         </description>
         <tags>owin, middleware, throttling, limits</tags>
         <frameworkAssemblies />
         <releaseNotes>
-            New Limits - Minimum response delay and maximum global bandwidth.
+            Can configure the log name for various limiters.
         </releaseNotes>
     </metadata>
     <files>

@@ -11,47 +11,55 @@
     public static partial class Limits
     {
         /// <summary>
-        /// Limits the length of the request content.
+        ///     Limits the length of the request content.
         /// </summary>
         /// <param name="maxContentLength">Maximum length of the content.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc MaxRequestContentLength(int maxContentLength)
+        public static MidFunc MaxRequestContentLength(int maxContentLength, string loggerName = null)
         {
-            return MaxRequestContentLength(() => maxContentLength);
+            return MaxRequestContentLength(() => maxContentLength, loggerName);
         }
 
         /// <summary>
-        /// Limits the length of the request content.
+        ///     Limits the length of the request content.
         /// </summary>
         /// <param name="getMaxContentLength">A delegate to get the maximum content length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getMaxContentLength</exception>
-        public static MidFunc MaxRequestContentLength(Func<int> getMaxContentLength)
+        public static MidFunc MaxRequestContentLength(Func<int> getMaxContentLength, string loggerName = null)
         {
             getMaxContentLength.MustNotNull("getMaxContentLength");
 
-            return MaxRequestContentLength(_ => getMaxContentLength());
+            return MaxRequestContentLength(_ => getMaxContentLength(), loggerName);
         }
 
         /// <summary>
-        /// Limits the length of the request content.
+        ///     Limits the length of the request content.
         /// </summary>
         /// <param name="getMaxContentLength">A delegate to get the maximum content length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getMaxContentLength</exception>
-        public static MidFunc MaxRequestContentLength(Func<RequestContext, int> getMaxContentLength)
+        public static MidFunc MaxRequestContentLength(
+            Func<RequestContext, int> getMaxContentLength,
+            string loggerName = null)
         {
             getMaxContentLength.MustNotNull("getMaxContentLength");
 
-            var logger = LogProvider.GetLogger("LimitsMiddleware.MaxRequestContentLength");
+            loggerName = string.IsNullOrWhiteSpace(loggerName)
+                ? "LimitsMiddleware.MaxRequestContentLength"
+                : loggerName;
+            var logger = LogProvider.GetLogger(loggerName);
 
             return
                 next =>
                 async env =>
                 {
                     var context = new OwinContext(env);
-                    IOwinRequest request = context.Request;
-                    string requestMethod = request.Method.Trim().ToUpper();
+                    var request = context.Request;
+                    var requestMethod = request.Method.Trim().ToUpper();
 
                     if (requestMethod == "HEAD")
                     {
@@ -85,7 +93,8 @@
                             }
                             if (contentLength > maxContentLength)
                             {
-                                logger.Info($"Content length of {contentLength} exceeds maximum of {maxContentLength}. Request rejected.");
+                                logger.Info($"Content length of {contentLength} exceeds maximum of {maxContentLength}. " +
+                                            "Request rejected.");
                                 SetResponseStatusCodeAndReasonPhrase(context, 413, "Request Entity Too Large");
                                 return;
                             }
