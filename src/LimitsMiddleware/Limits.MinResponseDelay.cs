@@ -14,75 +14,85 @@
 #pragma warning restore 1591
     {
         /// <summary>
-        /// Adds a minimum delay before sending the response.
+        ///     Adds a minimum delay before sending the response.
         /// </summary>
         /// <param name="minDelay">The min response delay, in milliseconds.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>A midfunc.</returns>
-        public static MidFunc MinResponseDelay(int minDelay)
+        public static MidFunc MinResponseDelay(int minDelay, string loggerName = null)
         {
-            return MinResponseDelay(_ => minDelay);
+            return MinResponseDelay(_ => minDelay, loggerName);
         }
 
         /// <summary>
-        /// Adds a minimum delay before sending the response.
+        ///     Adds a minimum delay before sending the response.
         /// </summary>
         /// <param name="getMinDelay">A delegate to return the min response delay.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The OWIN builder instance.</returns>
         /// <exception cref="System.ArgumentNullException">getMinDelay</exception>
-        public static MidFunc MinResponseDelay(Func<int> getMinDelay)
+        public static MidFunc MinResponseDelay(Func<int> getMinDelay, string loggerName = null)
         {
             getMinDelay.MustNotNull("getMinDelay");
 
-            return MinResponseDelay(_ => getMinDelay());
+            return MinResponseDelay(_ => getMinDelay(), loggerName);
         }
 
         /// <summary>
-        /// Adds a minimum delay before sending the response.
+        ///     Adds a minimum delay before sending the response.
         /// </summary>
         /// <param name="getMinDelay">A delegate to return the min response delay.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The OWIN builder instance.</returns>
         /// <exception cref="System.ArgumentNullException">getMinDelay</exception>
-        public static MidFunc MinResponseDelay(Func<RequestContext, int> getMinDelay)
+        public static MidFunc MinResponseDelay(Func<RequestContext, int> getMinDelay, string loggerName = null)
         {
             getMinDelay.MustNotNull("getMinDelay");
 
-            return MinResponseDelay(context => TimeSpan.FromMilliseconds(getMinDelay(context)));
+            return MinResponseDelay(context => TimeSpan.FromMilliseconds(getMinDelay(context)), loggerName);
         }
 
         /// <summary>
-        /// Adds a minimum delay before sending the response.
+        ///     Adds a minimum delay before sending the response.
         /// </summary>
         /// <param name="minDelay">The min response delay.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>A midfunc.</returns>
-        public static MidFunc MinResponseDelay(TimeSpan minDelay)
+        public static MidFunc MinResponseDelay(TimeSpan minDelay, string loggerName = null)
         {
-            return MinResponseDelay(_ => minDelay);
+            return MinResponseDelay(_ => minDelay, loggerName);
         }
 
         /// <summary>
-        /// Adds a minimum delay before sending the response.
+        ///     Adds a minimum delay before sending the response.
         /// </summary>
         /// <param name="getMinDelay">A delegate to return the min response delay.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The OWIN builder instance.</returns>
         /// <exception cref="System.ArgumentNullException">getMinDelay</exception>
-        public static MidFunc MinResponseDelay(Func<TimeSpan> getMinDelay)
+        public static MidFunc MinResponseDelay(Func<TimeSpan> getMinDelay, string loggerName = null)
         {
             getMinDelay.MustNotNull("getMinDelay");
 
-            return MinResponseDelay(_ => getMinDelay());
+            return MinResponseDelay(_ => getMinDelay(), loggerName);
         }
 
         /// <summary>
-        /// Adds a minimum delay before sending the response.
+        ///     Adds a minimum delay before sending the response.
         /// </summary>
         /// <param name="getMinDelay">A delegate to return the min response delay.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>The OWIN builder instance.</returns>
         /// <exception cref="System.ArgumentNullException">getMinDelay</exception>
-        public static MidFunc MinResponseDelay(Func<RequestContext, TimeSpan> getMinDelay)
+        public static MidFunc MinResponseDelay(Func<RequestContext, TimeSpan> getMinDelay, string loggerName = null)
         {
             getMinDelay.MustNotNull("getMinDelay");
 
-            var logger = LogProvider.GetLogger("LimitsMiddleware.MinResponseDelay");
+            loggerName = string.IsNullOrWhiteSpace(loggerName)
+                ? "LimitsMiddleware.MinResponseDelay"
+                : loggerName;
+
+            var logger = LogProvider.GetLogger(loggerName);
 
             return
                 next =>

@@ -11,36 +11,43 @@
     public static partial class Limits
     {
         /// <summary>
-        /// Limits the length of the query string.
+        ///     Limits the length of the query string.
         /// </summary>
         /// <param name="maxQueryStringLength">Maximum length of the query string.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc MaxQueryStringLength(int maxQueryStringLength)
+        public static MidFunc MaxQueryStringLength(int maxQueryStringLength, string loggerName = null)
         {
-            return MaxQueryStringLength(_ => maxQueryStringLength);
+            return MaxQueryStringLength(_ => maxQueryStringLength, loggerName);
+        }
+
+        /// <summary>
+        ///     Limits the length of the query string.
+        /// </summary>
+        /// <param name="getMaxQueryStringLength">A delegate to get the maximum query string length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
+        /// <returns>An OWIN middleware delegate.</returns>
+        public static MidFunc MaxQueryStringLength(Func<int> getMaxQueryStringLength, string loggerName = null)
+        {
+            return MaxQueryStringLength(_ => getMaxQueryStringLength(), loggerName);
         }
 
         /// <summary>
         /// Limits the length of the query string.
         /// </summary>
         /// <param name="getMaxQueryStringLength">A delegate to get the maximum query string length.</param>
-        /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc MaxQueryStringLength(Func<int> getMaxQueryStringLength)
-        {
-            return MaxQueryStringLength(_ => getMaxQueryStringLength());
-        }
-
-        /// <summary>
-        /// Limits the length of the query string.
-        /// </summary>
-        /// <param name="getMaxQueryStringLength">A delegate to get the maximum query string length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getMaxQueryStringLength</exception>
-        public static MidFunc MaxQueryStringLength(Func<RequestContext, int> getMaxQueryStringLength)
+        public static MidFunc MaxQueryStringLength(
+            Func<RequestContext, int> getMaxQueryStringLength,
+            string loggerName = null)
         {
             getMaxQueryStringLength.MustNotNull("getMaxQueryStringLength");
-
-            var logger = LogProvider.GetLogger("LimitsMiddleware.MaxQueryStringLength");
+            loggerName = string.IsNullOrWhiteSpace(loggerName)
+                ? "LimitsMiddleware.MaxQueryStringLength"
+                : loggerName;
+            var logger = LogProvider.GetLogger(loggerName);
 
             return
                 next =>

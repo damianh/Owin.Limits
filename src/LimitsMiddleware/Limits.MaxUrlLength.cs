@@ -15,33 +15,39 @@
         /// Limits the length of the URL.
         /// </summary>
         /// <param name="maxUrlLength">Maximum length of the URL.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc MaxUrlLength(int maxUrlLength)
+        public static MidFunc MaxUrlLength(int maxUrlLength, string loggerName = null)
         {
-            return MaxUrlLength(() => maxUrlLength);
+            return MaxUrlLength(() => maxUrlLength, loggerName);
         }
 
         /// <summary>
         /// Limits the length of the URL.
         /// </summary>
         /// <param name="getMaxUrlLength">Maximum length of the URL.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc MaxUrlLength(Func<int> getMaxUrlLength)
+        public static MidFunc MaxUrlLength(Func<int> getMaxUrlLength, string loggerName = null)
         {
-            return MaxUrlLength(_ => getMaxUrlLength());
+            return MaxUrlLength(_ => getMaxUrlLength(), loggerName);
         }
 
         /// <summary>
         /// Limits the length of the URL.
         /// </summary>
         /// <param name="getMaxUrlLength">A delegate to get the maximum URL length.</param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getMaxUrlLength</exception>
-        public static MidFunc MaxUrlLength(Func<RequestContext, int> getMaxUrlLength)
+        public static MidFunc MaxUrlLength(Func<RequestContext, int> getMaxUrlLength, string loggerName = null)
         {
             getMaxUrlLength.MustNotNull("getMaxUrlLength");
 
-            var logger = LogProvider.GetLogger("LimitsMiddleware.MaxUrlLength");
+            loggerName = string.IsNullOrWhiteSpace(loggerName)
+                ? "LimitsMiddleware.MaxUrlLength"
+                : loggerName;
+            var logger = LogProvider.GetLogger(loggerName);
 
             return
                 next =>

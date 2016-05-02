@@ -12,43 +12,61 @@
     public static partial class Limits
     {
         /// <summary>
-        /// Limits the number of concurrent requests that can be handled used by the subsequent stages in the owin pipeline.
+        ///     Limits the number of concurrent requests that can be handled used by the subsequent stages in the owin pipeline.
         /// </summary>
-        /// <param name="maxConcurrentRequests">The maximum number of concurrent requests. Use 0 or a negative
-        /// number to specify unlimited number of concurrent requests.</param>
+        /// <param name="maxConcurrentRequests">
+        ///     The maximum number of concurrent requests. Use 0 or a negative
+        ///     number to specify unlimited number of concurrent requests.
+        /// </param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
-        public static MidFunc MaxConcurrentRequests(int maxConcurrentRequests)
+        public static MidFunc MaxConcurrentRequests(int maxConcurrentRequests, string loggerName = null)
         {
             return MaxConcurrentRequests(() => maxConcurrentRequests);
         }
 
         /// <summary>
-        /// Limits the number of concurrent requests that can be handled used by the subsequent stages in the owin pipeline.
+        ///     Limits the number of concurrent requests that can be handled used by the subsequent stages in the owin pipeline.
         /// </summary>
-        /// <param name="getMaxConcurrentRequests">A delegate to retrieve the maximum number of concurrent requests. Allows you
-        /// to supply different values at runtime. Use 0 or a negative number to specify unlimited number of concurrent requests.</param>
+        /// <param name="getMaxConcurrentRequests">
+        ///     A delegate to retrieve the maximum number of concurrent requests. Allows you
+        ///     to supply different values at runtime. Use 0 or a negative number to specify unlimited number of concurrent
+        ///     requests.
+        /// </param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getMaxConcurrentRequests</exception>
-        public static MidFunc MaxConcurrentRequests(Func<int> getMaxConcurrentRequests)
+        public static MidFunc MaxConcurrentRequests(
+            Func<int> getMaxConcurrentRequests,
+            string loggerName = null)
         {
             getMaxConcurrentRequests.MustNotNull("getMaxConcurrentRequests");
 
-            return MaxConcurrentRequests(_ => getMaxConcurrentRequests());
+            return MaxConcurrentRequests(_ => getMaxConcurrentRequests(), loggerName);
         }
 
         /// <summary>
-        /// Limits the number of concurrent requests that can be handled used by the subsequent stages in the owin pipeline.
+        ///     Limits the number of concurrent requests that can be handled used by the subsequent stages in the owin pipeline.
         /// </summary>
-        /// <param name="getMaxConcurrentRequests">A delegate to retrieve the maximum number of concurrent requests. Allows you
-        /// to supply different values at runtime. Use 0 or a negative number to specify unlimited number of concurrent requests.</param>
+        /// <param name="getMaxConcurrentRequests">
+        ///     A delegate to retrieve the maximum number of concurrent requests. Allows you
+        ///     to supply different values at runtime. Use 0 or a negative number to specify unlimited number of concurrent
+        ///     requests.
+        /// </param>
+        /// <param name="loggerName">(Optional) The name of the logger log messages are written to.</param>
         /// <returns>An OWIN middleware delegate.</returns>
         /// <exception cref="System.ArgumentNullException">getMaxConcurrentRequests</exception>
-        public static MidFunc MaxConcurrentRequests(Func<RequestContext, int> getMaxConcurrentRequests)
+        public static MidFunc MaxConcurrentRequests(
+            Func<RequestContext, int> getMaxConcurrentRequests,
+            string loggerName = null)
         {
             getMaxConcurrentRequests.MustNotNull("getMaxConcurrentRequests");
 
-            var logger = LogProvider.GetLogger("LimitsMiddleware.MaxConcurrentRequests");
-            int concurrentRequestCounter = 0;
+            loggerName = string.IsNullOrWhiteSpace(loggerName)
+                ? "LimitsMiddleware.MaxConcurrentRequests"
+                : loggerName;
+            var logger = LogProvider.GetLogger(loggerName);
+            var concurrentRequestCounter = 0;
 
             return
                 next =>
@@ -69,7 +87,7 @@
                         {
                             logger.Info("Limit ({0}). Request rejected."
                                 .FormatWith(maxConcurrentRequests, concurrentRequests));
-                            IOwinResponse response = new OwinContext(env).Response;
+                            var response = new OwinContext(env).Response;
                             response.StatusCode = 503;
                             response.ReasonPhrase = "Service Unavailable";
                             response.Write(response.ReasonPhrase);
